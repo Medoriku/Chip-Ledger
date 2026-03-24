@@ -1,0 +1,13 @@
+<section class="card">
+	<h1>Welcome to Chip Ledger</h1>
+	{{#if user}}
+		<p>You are signed in as <strong>{{user.username}}</strong>.</p>
+	{{else}}
+		<p>Track your poker sessions and bankroll over time.</p>
+		<p>
+			<a class="btn" href="/login">Log In</a>
+			<a class="btn btn-secondary" href="/register">Register</a>
+		</p>
+	{{/if}}
+	<img src="/resources/img/home.png" alt="Chip Ledger home" class="home-image" />
+</section>
