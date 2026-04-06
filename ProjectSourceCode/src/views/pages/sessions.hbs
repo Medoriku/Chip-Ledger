@@ -1,4 +1,56 @@
 <section class="card">
 	<h1>Session History</h1>
+    <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#session_modal">Log New Session</button>
+     <div class="modal" id="session_modal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Logging New Session</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="needs-validation" id="event_form">
+                        <div class="mb-3">
+                            <label for="session_date" class="form-label">Select Date*</label>
+                            <input type="date" class="form-control" id="session_date" aria-describedby="sessionDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="session_hours" class="form-label">Hours Played*</label>
+                            <input type="number" class="form-control" id="session_hours" aria-describedby="sessionHours" min="0" step="0.5" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="session_buyin" class="form-label">Buy-In Amount*</label>
+                            <input type="number" class="form-control" id="session_buyin" aria-describedby="sessionBuyin" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="session_buyout" class="form-label">Buy-Out Amount*</label>
+                            <input type="number" class="form-control" id="session_buyout" aria-describedby="sessionBuyOut" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="session_rebuy" class="form-label">Number of Rebuys</label>
+                            <input type="number" class="form-control" id="session_rebuy" aria-describedby="sessionRebuy" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="session_location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="session_location" aria-describedby="sessionLocation" placeholder="Enter session location">
+                        </div>
+                         <div class="mb-3">
+                            <label for="session_stakes" class="form-label">Stakes*</label>
+                            <input type="text" class="form-control" id="session_stakes" aria-describedby="sessionStakes" placeholder="(Small Blind / Big Blind)" required>
+                        </div>
+                        <!-- To do: add in valiation that it must be #/# -->
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary" onclick="saveEvent()">Save Event</button>
+                        </div>
+
+                    </form>
+                </div>
+                
+                </div>
+            </div>
+        </div>
     <p>A list of sessions will go here.</p>
 </section>
