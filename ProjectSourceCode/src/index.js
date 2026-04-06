@@ -55,6 +55,10 @@ app.get('/register', (req, res) => {
 	res.render('pages/register', { title: 'Register' });
 });
 
+app.get('/sessions', (req, res) => {
+	res.render('pages/sessions', { title: 'Sessions' });
+});
+
 app.post('/register', async (req, res) => {
 	const { username, email, password } = req.body;
 	if (!username || !email || !password) {
