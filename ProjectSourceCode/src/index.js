@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt');
 const session = require('express-session');
 const { create } = require('express-handlebars');
 const pg = require('pg');
+const sessionProvider = require('./data/sessionProvider');
+const { summarizeSessions } = require('./services/sessionAnalytics');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +33,9 @@ app.use(
 
 // Required for local assets such as CSS/JS/images in this course setup.
 app.use(express.static(__dirname + '/'));
+
+// Keep data-access swappable: teammate SQL module can replace this provider.
+app.set('sessionProvider', sessionProvider);
 
 const db = new pg.Pool({
 	host: process.env.POSTGRES_HOST || 'db',
@@ -111,6 +116,30 @@ app.post('/logout', (req, res) => {
 	req.session.destroy(() => {
 		res.redirect('/');
 	});
+});
+
+app.get('/api/sessions/summary', async (req, res) => {
+	const sessionUserId = req.session?.user?.id;
+	const queryUserId = req.query.userId;
+	const resolvedUserId = Number(sessionUserId || queryUserId);
+
+	if (!Number.isInteger(resolvedUserId) || resolvedUserId <= 0) {
+		return res.status(400).json({ error: 'userId is required (session or query param)' });
+	}
+
+	const range = {
+		startDate: req.query.startDate,
+		endDate: req.query.endDate
+	};
+
+	try {
+		const provider = app.get('sessionProvider');
+		const sessions = await provider.getSessionsForUser(resolvedUserId, range);
+		const payload = summarizeSessions(resolvedUserId, sessions);
+		return res.status(200).json(payload);
+	} catch (err) {
+		return res.status(500).json({ error: 'Failed to summarize sessions' });
+	}
 });
 
 if (require.main === module) {
