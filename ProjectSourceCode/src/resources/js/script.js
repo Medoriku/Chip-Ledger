@@ -106,11 +106,11 @@ document.getElementById("session_form").addEventListener("submit", function (eve
         event.stopPropagation(); 
     } else {
         event.preventDefault();  
-        saveEvent();
+        saveSession();
     }
 });
 
-function saveEvent() {
+function saveSession() {
                 const sessionDetails = {
                 date: document.getElementById("session_date").value, 
                 hours: parseFloat(document.getElementById("session_hours").value) || 0,
@@ -123,7 +123,8 @@ function saveEvent() {
                 bigBlind: parseFloat(document.getElementById("session_bigBlind").value) || 0
                 };
             sessions.push(sessionDetails);
-            // (TO DO) call to add session to list function
+            // (TO DO) ADD THIS SESSION TO DISPLAY OF ALL OTHER SESSIONS (for now just console.log to show worked)
+			console.log(sessionDetails);
             document.getElementById("session_form").reset();
             const myModalElement = document.getElementById('session_modal');
             const myModal = bootstrap.Modal.getOrCreateInstance(myModalElement);
