@@ -58,10 +58,6 @@ VALUES
 
 INSERT INTO sessions (user_id, buy_in, buy_out, session_date, location_id, notes)
 VALUES
-INSERT INTO sessions (user_id, buy_in, buy_out, session_date, location_id, notes)
-VALUES
-INSERT INTO sessions (user_id, buy_in, buy_out, session_date, location_id, notes)
-VALUES
 (1, 10000.00, 55000.00, '2026-04-12', get_or_create_location(1, 'Leandro Barbosa''s basement'), 'Made insane bank off of Barbosa''s terrible bluff.'),
 (1, 20000.00, 30000.00, '2026-06-12', get_or_create_location(1, 'Leandro Barbosa''s basement'), NULL),
 (1, 15000.00, 45000.00, '2026-08-01', get_or_create_location(1, 'Leandro Barbosa''s basement'), NULL),
