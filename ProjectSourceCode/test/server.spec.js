@@ -57,11 +57,11 @@ describe('Registration Page Routes', () => {
         email: 'test@example.com',
         password: 'password123'
       })
-      .end((err, res) => {
+		.end((err, res) => {
         expect(hashStub.calledOnce).to.be.true;
         expect(dbStub.calledOnce).to.be.true;
 
-        expect(res).to.redirectTo(/\/login$/); // ends with /login
+			expect(res).to.redirectTo(/\/login(\?.*)?$/); // /login with optional query params
         done();
       });
   });
@@ -77,7 +77,7 @@ describe('Server page routes', () => {
 	it('GET / returns home page', async () => {
 		const res = await request(app).get('/');
 		expect(res.status).to.equal(200);
-		expect(res.text).to.include('Chip Ledger');
+		expect(res.text).to.include('Chip Companion');
 	});
 
 	it('GET /login returns login page', async () => {

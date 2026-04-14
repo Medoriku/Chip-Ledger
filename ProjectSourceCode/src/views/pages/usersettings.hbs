@@ -1,15 +1,20 @@
 <section class="card form-card">
 	<h1>User Settings</h1>
-	<form action="/register" method="POST" class="stack">
-		<label for="username">Username</label>
-		<input id="username" name="username" type="text" required />
+	<p class="lead-copy">Manage your account details and session preferences.</p>
 
-		<label for="email">Email</label>
-		<input id="email" name="email" type="email" required />
+	<div class="stack">
+		<label>Username</label>
+		<input type="text" value="{{user.username}}" readonly />
 
-		<label for="password">Password</label>
-		<input id="password" name="password" type="password" minlength="8" required />
+		<label>Email</label>
+		<input type="email" value="{{user.email}}" readonly />
 
-		<button type="submit" class="btn">Create Account</button>
-	</form>
+		<label>Default Session Notes</label>
+		<input type="text" value="Track notable hands and table reads" readonly />
+	</div>
+
+	<div class="hero-actions" style="margin-top: 1rem;">
+		<a href="/sessions" class="btn btn-primary">Go to Sessions</a>
+		<a href="/news" class="btn btn-secondary">View Poker News</a>
+	</div>
 </section>

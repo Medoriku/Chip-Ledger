@@ -1,11 +1,16 @@
 <section class="card form-card">
 	<h1>Register</h1>
+	{{#if registerError}}
+		<div class="alert alert-warning" role="alert">
+			{{registerError}}
+		</div>
+	{{/if}}
 	<form action="/register" method="POST" class="stack">
 		<label for="username">Username</label>
-		<input id="username" name="username" type="text" required />
+		<input id="username" name="username" type="text" value="{{username}}" required />
 
 		<label for="email">Email</label>
-		<input id="email" name="email" type="email" required />
+		<input id="email" name="email" type="email" value="{{email}}" required />
 
 		<label for="password">Password</label>
 		<input id="password" name="password" type="password" minlength="8" required />

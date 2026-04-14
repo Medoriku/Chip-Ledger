@@ -1,68 +1,35 @@
 <section class="card">
 	<h1>Session History</h1>
+    <p id="session-feedback" class="stats-feedback" aria-live="polite"></p>
+    {{#if isLoggedIn}}
     <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#session_modal">Log New Session</button>
-        <div class="modal" id="session_modal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Logging Session Data</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form class="needs-validation" id="session_form">
-                        <div class="mb-3">
-                            <label for="session_date" class="form-label">Select Date*</label>
-                            <input type="date" class="form-control" id="session_date" aria-describedby="sessionDate" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="session_hours" class="form-label">Hours Played*</label>
-                            <input type="number" class="form-control" id="session_hours" aria-describedby="sessionHours" min="0" step="0.25" placeholder="Enter to nearest quarter hour" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="session_buyin" class="form-label">Buy-In Amount*</label>
-                            <input type="number" class="form-control" id="session_buyin" aria-describedby="sessionBuyin" min="0" step="0.01" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="session_cashout" class="form-label">Cash Out Amount*</label>
-                            <input type="number" class="form-control" id="session_cashout" aria-describedby="sessionCashOut" step="0.01" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="session_rebuyNum" class="form-label">Number of Rebuys</label>
-                            <input type="number" class="form-control" id="session_rebuyNum" aria-describedby="sessionRebuyNum" min="0">
-                        </div>
-                        <div class="mb-3">
-                            <label for="session_rebuyAmount" class="form-label">Total Rebuy Amount</label>
-                            <input type="number" class="form-control" id="session_rebuyAmt" aria-describedby="sessionRebuyAmt" step="0.01" min="0" >
-                        </div>
-                        <div class="mb-3">
-                            <label for="session_location" class="form-label">Location</label>
-                            <input type="text" class="form-control" id="session_location" aria-describedby="sessionLocation" >
-                        </div>
-                         <div class="mb-3">
-                            <label class="form-label">Stakes*</label>
-                            <div class="d-flex gap-3">
-                                <div>
-                                    <input type="number" class="form-control" id="session_smallBlind" min="0" aria-describedby="sessionSmallBlind" step="0.01" placeholder="Small Blind" required>
-                                </div>
-                                <div class="d-flex justify-content-center align-items-center">
-                                    /
-                                </div>
-                                <div>
-                                    <input type="number" class="form-control" id="session_bigBlind" min="0" aria-describedby="sessionBigBlind" step="0.01" placeholder="Big Blind" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Save Event</button>
-                        </div>
-                    </form>
-                </div>
-                </div>
-            </div>
+    {{else}}
+        <div class="alert alert-warning mt-3" role="alert">
+            You need to be logged in to log sessions. <a href="/login" class="alert-link">Log in here</a>.
         </div>
+    {{/if}}
+
+    <div id="sessions-root" class="mt-3">
+        <h2 class="h4">Recent Sessions</h2>
+        <div id="session-summary-feedback" class="stats-feedback" aria-live="polite">Loading your session history...</div>
+        <div id="session-summary-grid" class="stats-grid"></div>
+        <div class="table-wrap">
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Session</th>
+                        <th>Buy-In</th>
+                        <th>Cash Out</th>
+                        <th>Hands</th>
+                        <th>Hours</th>
+                        <th>Net Profit</th>
+                        <th>$/Hr</th>
+                    </tr>
+                </thead>
+                <tbody id="session-summary-table-body"></tbody>
+            </table>
+        </div>
+    </div>
     
     <!-- 
     COMMENTED OUT THIS PLACEHOLDER DISPLAY FEATURES SO THAT I CAN MERGE WHAT WE HAVE TO MAIN AND ITS "STABLE" 
@@ -74,3 +41,68 @@
     <p>A list of sessions will go here.</p>
     -->
 </section>
+
+{{#if isLoggedIn}}
+<div class="modal fade" id="session_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Logging Session Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="needs-validation" id="session_form">
+                    <div class="mb-3">
+                        <label for="session_date" class="form-label">Select Date*</label>
+                        <input type="date" class="form-control" id="session_date" aria-describedby="sessionDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="session_hours" class="form-label">Hours Played*</label>
+                        <input type="number" class="form-control" id="session_hours" aria-describedby="sessionHours" min="0" step="0.25" placeholder="Enter to nearest quarter hour" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="session_buyin" class="form-label">Buy-In Amount*</label>
+                        <input type="number" class="form-control" id="session_buyin" aria-describedby="sessionBuyin" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="session_cashout" class="form-label">Cash Out Amount*</label>
+                        <input type="number" class="form-control" id="session_cashout" aria-describedby="sessionCashOut" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="session_rebuyNum" class="form-label">Number of Rebuys</label>
+                        <input type="number" class="form-control" id="session_rebuyNum" aria-describedby="sessionRebuyNum" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="session_rebuyAmount" class="form-label">Total Rebuy Amount</label>
+                        <input type="number" class="form-control" id="session_rebuyAmt" aria-describedby="sessionRebuyAmt" step="0.01" min="0" >
+                    </div>
+                    <div class="mb-3">
+                        <label for="session_location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="session_location" aria-describedby="sessionLocation" >
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Stakes*</label>
+                        <div class="d-flex gap-3">
+                            <div>
+                                <input type="number" class="form-control" id="session_smallBlind" min="0" aria-describedby="sessionSmallBlind" step="0.01" placeholder="Small Blind" required>
+                            </div>
+                            <div class="d-flex justify-content-center align-items-center">
+                                /
+                            </div>
+                            <div>
+                                <input type="number" class="form-control" id="session_bigBlind" min="0" aria-describedby="sessionBigBlind" step="0.01" placeholder="Big Blind" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Event</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{{/if}}
