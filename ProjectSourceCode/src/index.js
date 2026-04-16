@@ -6,12 +6,17 @@ const { create } = require('express-handlebars');
 const pg = require('pg');
 const { createSessionProvider } = require('./data/sessionProvider');
 const { summarizeSessions } = require('./services/sessionAnalytics');
+const { OAuth2Client } = require('google-auth-library');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const newsRoutes = require("./routes/news");
 app.use("/api/news", newsRoutes);
+
+const googleClient = new OAuth2Client(
+	process.env.GOOGLE_CLIENT_ID
+);
 
 const hbs = create({
 	extname: '.hbs',
@@ -289,5 +294,53 @@ if (require.main === module) {
 		console.log(`Server running on port ${PORT}`);
 	});
 }
+
+app.post('/auth/google', async (req, res) => {
+	const { token } = req.body;
+
+	try {
+		const ticket = await googleClient.verifyIdToken({
+			idToken: token,
+			audience: process.env.GOOGLE_CLIENT_ID
+		});
+
+		const payload = ticket.getPayload();
+
+		const email = payload.email;
+		const name = payload.name;
+
+		// find user
+		const result = await db.query(
+			'SELECT id, username, email FROM users WHERE email = $1',
+			[email]
+		);
+
+		let user = result.rows[0];
+
+		// create if missing
+		if (!user) {
+			const insert = await db.query(
+				`INSERT INTO users (username, email, password_hash)
+				 VALUES ($1, $2, $3)
+				 RETURNING id, username, email`,
+				[name || email.split('@')[0], email, 'GOOGLE_AUTH']
+			);
+
+			user = insert.rows[0];
+		}
+
+		// log them in (same system as /login)
+		req.session.user = {
+			id: user.id,
+			username: user.username,
+			email: user.email
+		};
+
+		res.json({ success: true });
+	} catch (err) {
+		console.error(err);
+		res.status(401).json({ error: 'Google login failed' });
+	}
+});
 
 module.exports = { app, db };

@@ -411,3 +411,24 @@ async function saveSession() {
 		}
 	}
 }
+
+async function handleGoogleLogin(response) {
+	const idToken = response.credential;
+
+	try {
+		const res = await fetch('/auth/google', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ token: idToken })
+		});
+
+		if (!res.ok) {
+			throw new Error('Google login failed');
+		}
+
+		window.location.href = '/';
+	} catch (err) {
+		console.error(err);
+		alert('Google login failed');
+	}
+}
