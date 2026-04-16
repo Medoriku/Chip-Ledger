@@ -72,6 +72,9 @@ POSTGRES_PASSWORD=yourpassword
 DB_DIALECT=postgres
 NODE_ENV=development
 SESSION_SECRET=your_session_secret_key
+GOOGLE_CLIENT_ID=1057592980669-61fr2eu25s24tkh5d9sa6h4f8017kpr8.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=PUT SECRET HERE
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
 ```
 
 ### 4. Start with Docker Compose
