@@ -543,6 +543,7 @@ function renderTable(sessions) {
             <td>$${s.dollarsPerHour}/hr</td>
             <td>${s.location || 'N/A'}</td>
             <td>${new Date(s.startTime).toLocaleDateString()}</td>
+			<td><button class="btn btn-sm btn-outline-secondary edit-session-btn" data-session-id="${rowData.sessionId}">Edit</button></td>
         </tr>
     `).join('');
 }
