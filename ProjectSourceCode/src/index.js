@@ -177,7 +177,11 @@ app.get('/usersettings', requireLogin, (req, res) => {
 });
 
 app.get('/news', (req, res) => {
-	res.render('pages/news', { title: 'News' });
+    res.render('pages/news', { 
+        title: 'News',
+        user: req.session.user || null,
+        isLoggedIn: Boolean(req.session?.user)
+    });
 });
 
 app.post('/register', async (req, res) => {
