@@ -49,7 +49,9 @@ function summarizeSession(session) {
         cashOut,
         timePlayedHours: roundTo(timePlayedHoursRaw),
         netProfit: roundTo(netProfitRaw),
-        dollarsPerHour: dollarsPerHourRaw === null ? null : roundTo(dollarsPerHourRaw)
+        dollarsPerHour: dollarsPerHourRaw === null ? null : roundTo(dollarsPerHourRaw),
+		location: session.location,
+		startTime: session.startTime
     };
 }
 function summarizeSessions(userId, sessions) {

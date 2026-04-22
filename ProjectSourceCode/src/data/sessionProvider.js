@@ -82,8 +82,8 @@ function inDateRange(session, range) {
 }
 
 async function getSessionsForUser(userId, range = {}) {
-	const sessions = SESSION_STORE[userId] || [];
-	return sessions.filter((session) => inDateRange(session, range));
+    const sessions = SESSION_STORE[userId] || [];
+    return sessions.filter((session) => inDateRange(session, range));
 }
 
 async function addSessionForUser(userId, payload = {}) {
@@ -115,6 +115,18 @@ async function addSessionForUser(userId, payload = {}) {
 	const startTime = new Date(`${date}T12:00:00.000Z`);
 	if (Number.isNaN(startTime.getTime())) {
 		throw new Error('Invalid date');
+	}
+
+	let locationId = null;
+	if (payload.location) {
+		const locResult = await dbPool.query(
+			`INSERT INTO locations (user_id, name)
+			VALUES ($1, $2)
+			ON CONFLICT (user_id, name) DO UPDATE SET name = EXCLUDED.name
+			RETURNING location_id`,
+			[userId, payload.location]
+		);
+		locationId = locResult.rows[0].location_id;
 	}
 
 	const endTime = new Date(startTime.getTime() + hours * 60 * 60 * 1000);
@@ -163,7 +175,8 @@ function mapDbRowToSession(row) {
         hours: hours, // Pass hours through to the frontend
         startTime: sessionDate.toISOString(),
         endTime: endTime.toISOString(),
-        notes: row.notes || null
+        notes: row.notes || null,
+		location: row.location || null
     };
 }
 
@@ -205,7 +218,7 @@ function createSessionProvider(dbPool) {
 	return {
 		async getSessionsForUser(userId, range = {}) {
 			const values = [userId];
-			const filters = ['user_id = $1'];
+			const filters = ['s.user_id = $1'];
 
 			if (range.startDate) {
 				values.push(range.startDate);
@@ -219,20 +232,22 @@ function createSessionProvider(dbPool) {
 
 			const result = await dbPool.query(
 				`SELECT
-					session_id AS "sessionId",
-					user_id AS "userId",
-					small_blind AS "smallBlind",
-					big_blind AS "bigBlind",
-					rebuy_num AS "rebuyNum",
-					rebuy_amt AS "rebuyAmt",
-					buy_in AS "buyIn",
-					buy_out AS "cashOut",
-					session_date AS "sessionDate",
-					session_hours AS "hours",
-					notes
-				 FROM sessions
-				 WHERE ${filters.join(' AND ')}
-				 ORDER BY session_date DESC, session_id DESC`,
+					s.session_id AS "sessionId",
+					s.user_id AS "userId",
+					s.small_blind AS "smallBlind",
+					s.big_blind AS "bigBlind",
+					s.rebuy_num AS "rebuyNum",
+					s.rebuy_amt AS "rebuyAmt",
+					s.buy_in AS "buyIn",
+					s.buy_out AS "cashOut",
+					s.session_date AS "sessionDate",
+					s.session_hours AS "hours",
+					s.notes,
+					l.name AS "location"
+				FROM sessions s
+				LEFT JOIN locations l ON s.location_id = l.location_id
+				WHERE ${filters.join(' AND ')}
+				ORDER BY s.session_date DESC, s.session_id DESC`,
 				values
 			);
 
@@ -266,9 +281,24 @@ function createSessionProvider(dbPool) {
 			}
 
 			const notes = payload.notes || null;
+
+			let locationId = null;
+			if (payload.location) {
+				const locResult = await dbPool.query(
+					`INSERT INTO locations (user_id, name)
+					 VALUES ($1, $2)
+					 ON CONFLICT (user_id, name) DO UPDATE SET name = EXCLUDED.name
+					 RETURNING location_id`,
+					[userId, payload.location]
+				);
+				locationId = locResult.rows[0].location_id;
+			}
+
+
+
 			const inserted = await dbPool.query(
 				`INSERT INTO sessions (user_id, small_blind, big_blind, rebuy_num, rebuy_amt, buy_in, buy_out, session_date, location_id, notes, session_hours)
-				 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NULL, $9, $10)
+				 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 				 RETURNING
 					session_id AS "sessionId",
 					user_id AS "userId",
@@ -281,8 +311,10 @@ function createSessionProvider(dbPool) {
 					session_date AS "sessionDate",
 					session_hours AS "hours",
 					notes`,
-				[userId, smallBlind, bigBlind, rebuyNum, rebuyAmt, buyIn, cashOut, date, notes, hours]
+				[userId, smallBlind, bigBlind, rebuyNum, rebuyAmt, buyIn, cashOut, date, locationId, notes, hours]
 			);
+
+			inserted.rows[0].location = payload.location || null;
 
 			return mapDbRowToSession(inserted.rows[0], hours);
 		}

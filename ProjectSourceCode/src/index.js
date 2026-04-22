@@ -84,6 +84,12 @@ async function ensureDatabaseSchema() {
 		)
 	`);
 
+	// await db.query(`
+	// 	ALTER TABLE locations
+	// 	ADD CONSTRAINT locations_user_id_name_unique
+	// 	UNIQUE (user_id, name)
+	// `);
+
 	await db.query(`
 		CREATE TABLE IF NOT EXISTS sessions (
 			session_id SERIAL PRIMARY KEY,
@@ -96,7 +102,7 @@ async function ensureDatabaseSchema() {
 			buy_in NUMERIC(10,2) NOT NULL,
 			buy_out NUMERIC(10,2) NOT NULL,
 			session_date DATE NOT NULL,
-			session_hours NUMERIC(5, 2) CHECK (hours * 4 = FLOOR(hours * 4)),
+			session_hours NUMERIC(5, 2) CHECK (session_hours * 4 = FLOOR(hours * 4)),
 			notes TEXT
 		)
 	`);
@@ -283,6 +289,7 @@ app.get('/api/sessions/summary', async (req, res) => {
 		payload.username = req.session?.user?.username || null;
 		return res.status(200).json(payload);
 	} catch (err) {
+		console.error('Summary error:', err);
 		return res.status(500).json({ error: 'Failed to summarize sessions' });
 	}
 });

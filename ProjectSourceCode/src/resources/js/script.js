@@ -112,6 +112,17 @@ function initVisualEffects() {
 	window.setInterval(spawnChip, 1200);
 }
 
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
 function initSessionsPage() {
 	const sessionsRoot = document.getElementById('sessions-root');
 	if (!sessionsRoot) {
@@ -154,21 +165,21 @@ function initSessionsPage() {
 			grid.appendChild(el);
 		}
 	}
-	function formatDate(dateString) {
-    	if (!dateString) return 'N/A';
+	// function formatDate(dateString) {
+    // 	if (!dateString) return 'N/A';
     
-    	const date = new Date(dateString);
+    // 	const date = new Date(dateString);
     
-    	// Check for invalid dates
-    	if (isNaN(date.getTime())) return 'Invalid Date';
+    // 	// Check for invalid dates
+    // 	if (isNaN(date.getTime())) return 'Invalid Date';
 
-    	// Clean MM/DD/YYYY
-    	return date.toLocaleDateString('en-US', {
-        	year: 'numeric',
-        	month: '2-digit',
-        	day: '2-digit'
-    	});
-	}
+    // 	// Clean MM/DD/YYYY
+    // 	return date.toLocaleDateString('en-US', {
+    //     	year: 'numeric',
+    //     	month: '2-digit',
+    //     	day: '2-digit'
+    // 	});
+	// }
 	function renderSessions(rows) {
 		tableBody.innerHTML = '';
 
@@ -189,6 +200,8 @@ function initSessionsPage() {
 				<td>${Number(rowData.timePlayedHours).toFixed(2)}</td>
 				<td>${currency(rowData.netProfit)}</td>
 				<td>${currency(rowData.dollarsPerHour)}</td>
+				<td>${String(rowData.location)}</td>
+				<td>${formatDate(rowData.startTime)}</td>
 			`;
 			tableBody.appendChild(row);
 		});
@@ -207,6 +220,8 @@ function initSessionsPage() {
 			}
 
 			const payload = await response.json();
+			console.log('payload:', payload);
+			console.log('first session:', payload.sessions[0]);
 			renderTotals(payload.totals);
 			renderSessions(payload.sessions);
 
@@ -285,6 +300,8 @@ document.addEventListener('DOMContentLoaded', () => {
 				<td>${Number(session.timePlayedHours).toFixed(2)}</td>
 				<td>${currency(session.netProfit)}</td>
 				<td>${currency(session.dollarsPerHour)}</td>
+				<td>${String(session.location)}</td>
+				<td>${formatDate(session.startTime)}</td>
 			`;
 			tableBody.appendChild(row);
 		});
@@ -384,7 +401,7 @@ async function saveSession() {
 		cashout: parseFloat(document.getElementById('session_cashout').value) || 0,
 		rebuyNum: parseInt(document.getElementById('session_rebuyNum').value, 10) || 0,
 		rebuyAmt: parseFloat(document.getElementById('session_rebuyAmt').value) || 0,
-		location: document.getElementById('session_location').value,
+		location: document.getElementById('session_location').value || null,
 		smallBlind: parseFloat(document.getElementById('session_smallBlind').value) || 0,
 		bigBlind: parseFloat(document.getElementById('session_bigBlind').value) || 0
 	};
