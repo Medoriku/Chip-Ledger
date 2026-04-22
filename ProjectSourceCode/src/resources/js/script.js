@@ -124,6 +124,7 @@ function formatDate(dateString) {
 }
 
 function initSessionsPage() {
+	let currentPayload = null; 
 	const sessionsRoot = document.getElementById('sessions-root');
 	if (!sessionsRoot) {
 		return;
@@ -165,21 +166,7 @@ function initSessionsPage() {
 			grid.appendChild(el);
 		}
 	}
-	// function formatDate(dateString) {
-    // 	if (!dateString) return 'N/A';
-    
-    // 	const date = new Date(dateString);
-    
-    // 	// Check for invalid dates
-    // 	if (isNaN(date.getTime())) return 'Invalid Date';
 
-    // 	// Clean MM/DD/YYYY
-    // 	return date.toLocaleDateString('en-US', {
-    //     	year: 'numeric',
-    //     	month: '2-digit',
-    //     	day: '2-digit'
-    // 	});
-	// }
 	function renderSessions(rows) {
 		tableBody.innerHTML = '';
 
@@ -202,6 +189,7 @@ function initSessionsPage() {
 				<td>${currency(rowData.dollarsPerHour)}</td>
 				<td>${String(rowData.location)}</td>
 				<td>${formatDate(rowData.startTime)}</td>
+				 <td><button class="btn btn-sm btn-outline-secondary edit-session-btn" data-session-id="${rowData.sessionId}">Edit</button></td>
 			`;
 			tableBody.appendChild(row);
 		});
@@ -220,6 +208,7 @@ function initSessionsPage() {
 			}
 
 			const payload = await response.json();
+			currentPayload = payload;
 			console.log('payload:', payload);
 			console.log('first session:', payload.sessions[0]);
 			renderTotals(payload.totals);
@@ -236,6 +225,28 @@ function initSessionsPage() {
 			tableBody.innerHTML = '';
 		}
 	}
+
+	document.addEventListener('click', (e) => {
+		if (!e.target.classList.contains('edit-session-btn')) return;
+
+		const sessionId = Number(e.target.dataset.sessionId);
+		const session = currentPayload.sessions.find(s => s.sessionId === sessionId);
+		if (!session) return;
+
+		document.getElementById('session_date').value        = session.startTime.slice(0, 10);
+		document.getElementById('session_hours').value       = session.timePlayedHours;
+		document.getElementById('session_buyin').value       = session.buyIn;
+		document.getElementById('session_cashout').value     = session.cashOut;
+		document.getElementById('session_rebuyNum').value    = session.rebuyNum || 0;
+		document.getElementById('session_rebuyAmt').value    = session.rebuyAmt || 0;
+		document.getElementById('session_location').value    = session.location || '';
+		document.getElementById('session_smallBlind').value  = session.smallBlind;
+		document.getElementById('session_bigBlind').value    = session.bigBlind;
+
+		document.getElementById('session_form').dataset.editingSessionId = sessionId;
+
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('session_modal')).show();
+	});
 
 	refreshSessionsSummary = loadSessionSummary;
 	loadSessionSummary();
@@ -307,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
+	let currentPayload = null;
 	async function loadSummary() {
 		feedback.textContent = 'Loading statistics...';
 		try {
@@ -317,6 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 
 			const payload = await response.json();
+			currentPayload = payload;
 			renderTotals(payload.totals);
 			renderSessions(payload.sessions);
 			const targetLabel = payload.username || 'this account';
@@ -393,7 +406,18 @@ if (sessionForm) {
 	});
 }
 
+const sessionModal = document.getElementById('session_modal');
+if (sessionModal) {
+    sessionModal.addEventListener('hidden.bs.modal', () => {
+        document.getElementById('session_form').reset();
+        delete document.getElementById('session_form').dataset.editingSessionId;
+    });
+}
+
 async function saveSession() {
+	const form = document.getElementById('session_form');
+    const editingSessionId = form.dataset.editingSessionId;
+
 	const sessionDetails = {
 		date: document.getElementById('session_date').value,
 		hours: parseFloat(document.getElementById('session_hours').value) || 0,
@@ -406,14 +430,21 @@ async function saveSession() {
 		bigBlind: parseFloat(document.getElementById('session_bigBlind').value) || 0
 	};
 
+	const isEditing = Boolean(editingSessionId);
+	const url    = isEditing ? `/api/sessions/${editingSessionId}` : '/api/sessions';
+    const method = isEditing ? 'PATCH' : 'POST';
+	console.log('editingSessionId:', editingSessionId);
+	console.log('url:', url);
+	console.log('method:', method);
+
 	const feedback = document.getElementById('session-feedback');
 	if (feedback) {
 		feedback.textContent = 'Saving session...';
 	}
 
 	try {
-		const response = await fetch('/api/sessions', {
-			method: 'POST',
+		const response = await fetch(url, {
+			method: method,
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(sessionDetails)
 		});
@@ -423,19 +454,13 @@ async function saveSession() {
 			throw new Error(body.error || 'Failed to save session');
 		}
 
-		sessions.push(body.session);
-		document.getElementById('session_form').reset();
-		const myModalElement = document.getElementById('session_modal');
-		const myModal = bootstrap.Modal.getOrCreateInstance(myModalElement);
-		myModal.hide();
+		form.reset();
+        delete form.dataset.editingSessionId;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('session_modal')).hide();
 
-		if (feedback) {
-			feedback.textContent = 'Session logged successfully.';
-		}
+        if (feedback) feedback.textContent = isEditing ? 'Session updated successfully.' : 'Session logged successfully.';
 
-		if (typeof refreshSessionsSummary === 'function') {
-			refreshSessionsSummary();
-		}
+        if (typeof refreshSessionsSummary === 'function') refreshSessionsSummary();
 	} catch (err) {
 		if (feedback) {
 			feedback.textContent = `Could not save session: ${err.message}`;

@@ -153,6 +153,30 @@ app.get('/register', (req, res) => {
 	});
 });
 
+app.get('/user', async (req, res) => {
+    const email = req.body.email;
+
+    if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+    }
+
+    try {
+        const result = await db.query(
+            'SELECT id, username, email, created_at FROM users WHERE email = $1',
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        return res.status(200).json(result.rows[0]);
+    } catch (err) {
+        console.error('Failed to fetch user:', err);
+        return res.status(500).json({ error: 'Failed to fetch user' });
+    }
+});
+
 app.get('/sessions', (req, res) => {
 	res.render('pages/sessions', {
 		title: 'Sessions',
@@ -309,6 +333,24 @@ app.post('/api/sessions', requireLoginApi, async (req, res) => {
 		return res.status(400).json({ error: err.message || 'Could not log session' });
 	}
 });
+
+app.patch('/api/sessions/:sessionId', requireLoginApi, async (req,res) => {
+	const userId = req.session.user.id; 
+	const sessionId = parseInt(req.params.sessionId); 
+	
+	if(!sessionId)
+	{
+		return res.status(400).json({error: 'Invalid Session ID'});
+	}
+
+	try {
+		const provider = app.get('sessionProvider');
+        const updated = await provider.updateSessionForUser(userId, sessionId, req.body);
+        return res.status(200).json({ message: 'Session updated successfully', session: updated });
+	} catch(err) {
+		return res.status(400).json({ error: err.message || 'Could not update session' });
+	}
+})
 
 if (require.main === module) {
 	app.listen(PORT, () => {

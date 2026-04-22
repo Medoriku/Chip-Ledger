@@ -1,3 +1,5 @@
+const session = require("express-session");
+
 const MOCK_SESSIONS_BY_USER = {
 	1: [
 		{
@@ -151,6 +153,83 @@ async function addSessionForUser(userId, payload = {}) {
 
 	SESSION_STORE[userId].push(newSession);
 	return newSession;
+}
+
+async function updateSessionForUser(userId, sessionId, payload = {}) {
+    const date = payload.date;
+	const hours = Number(payload.hours);
+	const buyIn = Number(payload.buyin);
+	const cashOut = Number(payload.cashout);
+	const smallBlind = Number(payload.smallBlind);
+	const bigBlind = Number(payload.bigBlind);
+	const rebuyNum = Number(payload.rebuyNum ?? 0);
+	const rebuyAmt = Number(payload.rebuyAmt ?? 0)
+
+	if (!date || Number.isNaN(hours) || Number.isNaN(buyIn) || Number.isNaN(cashOut) || Number.isNaN(smallBlind) || Number.isNaN(bigBlind) || Number.isNaN(rebuyNum) || Number.isNaN(rebuyAmt)) {
+		throw new Error('date, hours, buyin, cashout, smallBlind, bigBlind, rebuyNum, and rebuyAmt are required');
+	}
+
+	if (hours <= 0) {
+		throw new Error('hours must be greater than 0');
+	}
+
+	if (smallBlind <= 0 || bigBlind <= 0) {
+		throw new Error('smallBlind and bigBlind must be greater than 0');
+	}
+
+	if (rebuyNum < 0 || rebuyAmt < 0) {
+		throw new Error('rebuyNum and rebuyAmt cannot be negative');
+	}
+
+	const startTime = new Date(`${date}T12:00:00.000Z`);
+	if (Number.isNaN(startTime.getTime())) {
+		throw new Error('Invalid date');
+	}
+
+	let locationId = null;
+	if (payload.location) {
+		const locResult = await dbPool.query(
+			`INSERT INTO locations (user_id, name)
+			VALUES ($1, $2)
+			ON CONFLICT (user_id, name) DO UPDATE SET name = EXCLUDED.name
+			RETURNING location_id`,
+			[userId, payload.location]
+		);
+		locationId = locResult.rows[0].location_id;
+	}
+
+	const res = await dbPool.query(
+		`UPDATE sessions
+		SET
+			session_date  = $1,
+			session_hours = $2,
+			buy_in        = $3,
+			buy_out       = $4,
+			small_blind   = $5,
+			big_blind     = $6,
+			rebuy_num     = $7,
+			rebuy_amt     = $8,
+			location_id   = $9,
+			notes         = $10
+		WHERE session_id  = $11
+		AND user_id     = $12
+		RETURNING
+			session_id    AS "sessionId",
+			user_id       AS "userId",
+			small_blind   AS "smallBlind",
+			big_blind     AS "bigBlind",
+			rebuy_num     AS "rebuyNum",
+			rebuy_amt     AS "rebuyAmt",
+			buy_in        AS "buyIn",
+			buy_out       AS "cashOut",
+			session_date  AS "sessionDate",
+			session_hours AS "hours",
+			notes;`,
+		[date, hours, buyIn, cashOut, smallBlind, bigBlind, rebuyNum, rebuyAmt, locationId, payload.notes || null, sessionId, userId]
+	);
+
+	res.rows[0].location = payload.location || null;
+return mapDbRowToSession(res.rows[0]);
 }
 
 function mapDbRowToSession(row) {
@@ -317,8 +396,86 @@ function createSessionProvider(dbPool) {
 			inserted.rows[0].location = payload.location || null;
 
 			return mapDbRowToSession(inserted.rows[0], hours);
+		},
+	
+
+	async updateSessionForUser(userId, sessionId, payload = {}) {
+		const date = payload.date;
+		const hours = Number(payload.hours);
+		const buyIn = Number(payload.buyin);
+		const cashOut = Number(payload.cashout);
+		const smallBlind = Number(payload.smallBlind);
+		const bigBlind = Number(payload.bigBlind);
+		const rebuyNum = Number(payload.rebuyNum ?? 0);
+		const rebuyAmt = Number(payload.rebuyAmt ?? 0)
+
+		if (!date || Number.isNaN(hours) || Number.isNaN(buyIn) || Number.isNaN(cashOut) || Number.isNaN(smallBlind) || Number.isNaN(bigBlind) || Number.isNaN(rebuyNum) || Number.isNaN(rebuyAmt)) {
+			throw new Error('date, hours, buyin, cashout, smallBlind, bigBlind, rebuyNum, and rebuyAmt are required');
 		}
-	};
+
+		if (hours <= 0) {
+			throw new Error('hours must be greater than 0');
+		}
+
+		if (smallBlind <= 0 || bigBlind <= 0) {
+			throw new Error('smallBlind and bigBlind must be greater than 0');
+		}
+
+		if (rebuyNum < 0 || rebuyAmt < 0) {
+			throw new Error('rebuyNum and rebuyAmt cannot be negative');
+		}
+
+		const startTime = new Date(`${date}T12:00:00.000Z`);
+		if (Number.isNaN(startTime.getTime())) {
+			throw new Error('Invalid date');
+		}
+
+		let locationId = null;
+		if (payload.location) {
+			const locResult = await dbPool.query(
+				`INSERT INTO locations (user_id, name)
+				VALUES ($1, $2)
+				ON CONFLICT (user_id, name) DO UPDATE SET name = EXCLUDED.name
+				RETURNING location_id`,
+				[userId, payload.location]
+			);
+			locationId = locResult.rows[0].location_id;
+		}
+
+		const res = await dbPool.query(
+			`UPDATE sessions
+			SET
+				session_date  = $1,
+				session_hours = $2,
+				buy_in        = $3,
+				buy_out       = $4,
+				small_blind   = $5,
+				big_blind     = $6,
+				rebuy_num     = $7,
+				rebuy_amt     = $8,
+				location_id   = $9,
+				notes         = $10
+			WHERE session_id  = $11
+			AND user_id     = $12
+			RETURNING
+				session_id    AS "sessionId",
+				user_id       AS "userId",
+				small_blind   AS "smallBlind",
+				big_blind     AS "bigBlind",
+				rebuy_num     AS "rebuyNum",
+				rebuy_amt     AS "rebuyAmt",
+				buy_in        AS "buyIn",
+				buy_out       AS "cashOut",
+				session_date  AS "sessionDate",
+				session_hours AS "hours",
+				notes;`,
+			[date, hours, buyIn, cashOut, smallBlind, bigBlind, rebuyNum, rebuyAmt, locationId, payload.notes || null, sessionId, userId]
+		);
+
+		res.rows[0].location = payload.location || null;
+		return mapDbRowToSession(res.rows[0]);
+	}
+}
 }
 
 module.exports = {
