@@ -34,7 +34,7 @@ function summarizeSession(session) {
         : hoursBetween(session.startTime, session.endTime);
 
 
-    const totalInvested = buyIn + (rebuyNum * rebuyAmt);
+    const totalInvested = buyIn + (rebuyAmt);
     const netProfitRaw = cashOut - totalInvested;
     
     const dollarsPerHourRaw = timePlayedHoursRaw > 0 ? netProfitRaw / timePlayedHoursRaw : null;
