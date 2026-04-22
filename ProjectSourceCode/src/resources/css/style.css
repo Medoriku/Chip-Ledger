@@ -682,3 +682,19 @@ button:hover {
 		grid-template-columns: 1fr;
 	}
 }
+
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+
+.sortable:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.sort-icon {
+    font-size: 0.8rem;
+    color: #888;
+    margin-left: 5px;
+}

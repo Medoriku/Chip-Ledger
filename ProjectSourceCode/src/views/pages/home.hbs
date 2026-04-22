@@ -56,17 +56,18 @@
 			<table class="stats-table" id="stats-table">
 				<thead>
 					<tr>
-						<th>Session</th>
-						<th>Buy In</th>
-						<th>Cash Out</th>
-						<th>Rebuys</th>
-						<th>Rebuy Amount</th>
-						<th>Hours</th>
-						<th>Net Profit</th>
-						<th>$/hr</th>
-						<th>Location</th>
-						<th>Date</th>
-					</tr>
+                        <th class="sortable" data-sort="sessionId">Session <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="bigBlind">Stakes <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="buyIn">Buy-In <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="cashOut">Cash Out <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="rebuyNum">Rebuys <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="rebuyAmt">Total Rebuy Amount <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="timePlayedHours">Hours <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="netProfit">Net Profit <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="dollarsPerHour">$/Hr <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="location">Location <span class="sort-icon">↕</span></th>
+                        <th class="sortable" data-sort="startTime">Date <span class="sort-icon">↕</span></th>
+                    </tr>
 				</thead>
 				<tbody id="stats-table-body"></tbody>
 			</table>

@@ -463,3 +463,71 @@ async function handleGoogleLogin(response) {
 		alert('Google login failed');
 	}
 }
+// sortable sessions
+let allSessions = []; 
+let currentSort = { column: null, direction: 'asc' };
+
+async function loadSessions() {
+    try {
+        const response = await fetch('/api/sessions/summary');
+        const data = await response.json();
+        allSessions = data.sessions; 
+        renderTable(allSessions);
+    } catch (err) {
+        console.error("Failed to load sessions:", err);
+    }
+}
+
+function sortSessions(column) {
+    const direction = (currentSort.column === column && currentSort.direction === 'asc') ? 'desc' : 'asc';
+    currentSort = { column, direction };
+
+    const sortedData = [...allSessions].sort((a, b) => {
+        let valA = a[column];
+        let valB = b[column];
+        if (valA === null) return 1;
+        if (valB === null) return -1;
+
+        if (column === 'startTime') {
+            return direction === 'asc' ? new Date(valA) - new Date(valB) : new Date(valB) - new Date(valA);
+        }
+
+        return direction === 'asc' 
+            ? (valA < valB ? -1 : valA > valB ? 1 : 0)
+            : (valA > valB ? -1 : valA < valB ? 1 : 0);
+    });
+
+    renderTable(sortedData);
+}
+
+function renderTable(sessions) {
+    const tbody = document.getElementById('stats-table-body') || 
+                  document.getElementById('session-summary-table-body');
+    if(!tbody) return;
+    
+    tbody.innerHTML = sessions.map(s => `
+        <tr>
+            <td>${s.sessionId}</td>
+            <td>$${s.smallBlind}/$${s.bigBlind}</td>
+            <td>$${s.buyIn}</td>
+            <td>$${s.cashOut}</td>
+            <td>${s.rebuyNum}</td>
+            <td>$${s.rebuyAmt}</td>
+            <td>${s.timePlayedHours}</td>
+            <td class="${s.netProfit >= 0 ? 'text-success' : 'text-danger'}">$${s.netProfit}</td>
+            <td>$${s.dollarsPerHour}/hr</td>
+            <td>${s.location || 'N/A'}</td>
+            <td>${new Date(s.startTime).toLocaleDateString()}</td>
+        </tr>
+    `).join('');
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSessions();
+    document.querySelectorAll('.sortable').forEach(header => {
+        header.addEventListener('click', () => {
+            sortSessions(header.getAttribute('data-sort'));
+        });
+    });
+});
