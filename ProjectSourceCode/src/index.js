@@ -96,6 +96,7 @@ async function ensureDatabaseSchema() {
 			buy_in NUMERIC(10,2) NOT NULL,
 			buy_out NUMERIC(10,2) NOT NULL,
 			session_date DATE NOT NULL,
+			session_hours NUMERIC(5, 2) CHECK (hours * 4 = FLOOR(hours * 4)),
 			notes TEXT
 		)
 	`);
@@ -104,6 +105,7 @@ async function ensureDatabaseSchema() {
 	await db.query('ALTER TABLE sessions ADD COLUMN IF NOT EXISTS big_blind NUMERIC(10,2)');
 	await db.query('ALTER TABLE sessions ADD COLUMN IF NOT EXISTS rebuy_num INTEGER');
 	await db.query('ALTER TABLE sessions ADD COLUMN IF NOT EXISTS rebuy_amt NUMERIC(10,2)');
+	await db.query('ALTER TABLE sessions ADD COLUMN IF NOT EXISTS session_hours NUMERIC(5, 2)');
 }
 
 const isTestRuntime =
@@ -151,6 +153,14 @@ app.get('/sessions', (req, res) => {
 		user: req.session.user || null,
 		isLoggedIn: Boolean(req.session?.user)
 	});
+});
+
+app.get('/livesessions', (req, res) => {
+    res.render('pages/livesessions', {
+        title: 'Live Session',
+        user: req.session.user || null,
+		isLoggedIn: Boolean(req.session?.user)
+    });
 });
 
 app.get('/usersettings', requireLogin, (req, res) => {

@@ -154,7 +154,21 @@ function initSessionsPage() {
 			grid.appendChild(el);
 		}
 	}
+	function formatDate(dateString) {
+    	if (!dateString) return 'N/A';
+    
+    	const date = new Date(dateString);
+    
+    	// Check for invalid dates
+    	if (isNaN(date.getTime())) return 'Invalid Date';
 
+    	// Clean MM/DD/YYYY
+    	return date.toLocaleDateString('en-US', {
+        	year: 'numeric',
+        	month: '2-digit',
+        	day: '2-digit'
+    	});
+	}
 	function renderSessions(rows) {
 		tableBody.innerHTML = '';
 

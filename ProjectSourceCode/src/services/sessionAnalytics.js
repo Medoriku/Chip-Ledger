@@ -24,28 +24,34 @@ function hoursBetween(startTime, endTime) {
 }
 
 function summarizeSession(session) {
-	const buyIn = toNumber(session.buyIn);
-	const cashOut = toNumber(session.cashOut);
-	const rebuyNum = toNumber(session.rebuyNum, 0);
-	const rebuyAmt = toNumber(session.rebuyAmt, 0);
-	const timePlayedHoursRaw = hoursBetween(session.startTime, session.endTime);
-	const netProfitRaw = cashOut - (buyIn + rebuyAmt);
-	const dollarsPerHourRaw = timePlayedHoursRaw > 0 ? netProfitRaw / timePlayedHoursRaw : null;
+    const buyIn = toNumber(session.buyIn);
+    const cashOut = toNumber(session.cashOut);
+    const rebuyNum = toNumber(session.rebuyNum, 0);
+    const rebuyAmt = toNumber(session.rebuyAmt, 0);
+    
+    const timePlayedHoursRaw = session.hours !== undefined 
+        ? toNumber(session.hours) 
+        : hoursBetween(session.startTime, session.endTime);
 
-	return {
-		sessionId: session.sessionId,
-		smallBlind: toNumber(session.smallBlind, null),
-		bigBlind: toNumber(session.bigBlind, null),
-		rebuyNum,
-		rebuyAmt,
-		buyIn,
-		cashOut,
-		timePlayedHours: roundTo(timePlayedHoursRaw),
-		netProfit: roundTo(netProfitRaw),
-		dollarsPerHour: dollarsPerHourRaw === null ? null : roundTo(dollarsPerHourRaw)
-	};
+
+    const totalInvested = buyIn + (rebuyNum * rebuyAmt);
+    const netProfitRaw = cashOut - totalInvested;
+    
+    const dollarsPerHourRaw = timePlayedHoursRaw > 0 ? netProfitRaw / timePlayedHoursRaw : null;
+
+    return {
+        sessionId: session.sessionId,
+        smallBlind: toNumber(session.smallBlind, null),
+        bigBlind: toNumber(session.bigBlind, null),
+        rebuyNum,
+        rebuyAmt,
+        buyIn,
+        cashOut,
+        timePlayedHours: roundTo(timePlayedHoursRaw),
+        netProfit: roundTo(netProfitRaw),
+        dollarsPerHour: dollarsPerHourRaw === null ? null : roundTo(dollarsPerHourRaw)
+    };
 }
-
 function summarizeSessions(userId, sessions) {
 	const computedSessions = sessions.map(summarizeSession);
 

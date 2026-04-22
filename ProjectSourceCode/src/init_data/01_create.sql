@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     buy_in NUMERIC(10,2) NOT NULL,
     buy_out NUMERIC(10,2) NOT NULL,
     session_date DATE NOT NULL,
+    session_hours NUMERIC(5, 2) CHECK (session_hours * 4 = FLOOR(session_hours * 4)),
     notes TEXT
 );
 

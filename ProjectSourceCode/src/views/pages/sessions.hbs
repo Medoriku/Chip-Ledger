@@ -2,7 +2,10 @@
 	<h1>Session History</h1>
     <p id="session-feedback" class="stats-feedback" aria-live="polite"></p>
     {{#if isLoggedIn}}
-    <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#session_modal">Log New Session</button>
+    <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#session_modal">Log New Session</button>
+        <a href="/livesessions" class="btn btn-outline-primary">Start a Live Session</a>
+    </div>
     {{else}}
         <div class="alert alert-warning mt-3" role="alert">
             You need to be logged in to log sessions. <a href="/login" class="alert-link">Log in here</a>.

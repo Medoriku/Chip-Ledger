@@ -6,11 +6,17 @@
 		</a>
 		<nav>
 			<a href="/">Home</a>
+			<a href="/sessions">Sessions</a>
+			<a href="/livesessions">Live Sessions</a>
+			<a href="/news">News</a>
+		{{#if user}}
+			{{^}}
 			<a href="/login">Login</a>
 			<a href="/register">Register</a>
+		{{/if}}
+		{{#if user}}
 			<a href="/usersettings">User Settings</a>
-			<a href="/sessions">Sessions</a>
-			<a href="/news">News</a>
+		{{/if}}
 		</nav>
 		{{#if user}}
 			<form action="/logout" method="POST">

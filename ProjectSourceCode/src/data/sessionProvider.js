@@ -141,27 +141,30 @@ async function addSessionForUser(userId, payload = {}) {
 	return newSession;
 }
 
-function mapDbRowToSession(row, hoursOverride = 2) {
-	const sessionDate = normalizeSessionDate(row.sessionDate);
-	if (!sessionDate) {
-		throw new Error('Invalid session date returned from database');
-	}
-	const safeHours = Number.isFinite(hoursOverride) && hoursOverride > 0 ? hoursOverride : 2;
-	const endTime = new Date(sessionDate.getTime() + safeHours * 60 * 60 * 1000);
+function mapDbRowToSession(row) {
+    const sessionDate = normalizeSessionDate(row.sessionDate);
+    if (!sessionDate) {
+        throw new Error('Invalid session date returned from database');
+    }
+    
+    // Use the hours column from the DB, fallback to 0 or a default if missing
+    const hours = Number(row.hours || 0);
+    const endTime = new Date(sessionDate.getTime() + hours * 60 * 60 * 1000);
 
-	return {
-		sessionId: Number(row.sessionId),
-		userId: Number(row.userId),
-		smallBlind: row.smallBlind === null || row.smallBlind === undefined ? null : Number(row.smallBlind),
-		bigBlind: row.bigBlind === null || row.bigBlind === undefined ? null : Number(row.bigBlind),
-		rebuyNum: row.rebuyNum === null || row.rebuyNum === undefined ? 0 : Number(row.rebuyNum),
-		rebuyAmt: row.rebuyAmt === null || row.rebuyAmt === undefined ? 0 : Number(row.rebuyAmt),
-		buyIn: Number(row.buyIn),
-		cashOut: Number(row.cashOut),
-		startTime: sessionDate.toISOString(),
-		endTime: endTime.toISOString(),
-		notes: row.notes || null
-	};
+    return {
+        sessionId: Number(row.sessionId),
+        userId: Number(row.userId),
+        smallBlind: row.smallBlind === null ? null : Number(row.smallBlind),
+        bigBlind: row.bigBlind === null ? null : Number(row.bigBlind),
+        rebuyNum: Number(row.rebuyNum || 0),
+        rebuyAmt: Number(row.rebuyAmt || 0),
+        buyIn: Number(row.buyIn),
+        cashOut: Number(row.cashOut),
+        hours: hours, // Pass hours through to the frontend
+        startTime: sessionDate.toISOString(),
+        endTime: endTime.toISOString(),
+        notes: row.notes || null
+    };
 }
 
 function normalizeSessionDate(value) {
@@ -225,6 +228,7 @@ function createSessionProvider(dbPool) {
 					buy_in AS "buyIn",
 					buy_out AS "cashOut",
 					session_date AS "sessionDate",
+					session_hours AS "hours",
 					notes
 				 FROM sessions
 				 WHERE ${filters.join(' AND ')}
@@ -232,7 +236,7 @@ function createSessionProvider(dbPool) {
 				values
 			);
 
-			return result.rows.map((row) => mapDbRowToSession(row, 2));
+			return result.rows.map((row) => mapDbRowToSession(row));
 		},
 
 		async addSessionForUser(userId, payload = {}) {
@@ -263,8 +267,8 @@ function createSessionProvider(dbPool) {
 
 			const notes = payload.notes || null;
 			const inserted = await dbPool.query(
-				`INSERT INTO sessions (user_id, small_blind, big_blind, rebuy_num, rebuy_amt, buy_in, buy_out, session_date, location_id, notes)
-				 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NULL, $9)
+				`INSERT INTO sessions (user_id, small_blind, big_blind, rebuy_num, rebuy_amt, buy_in, buy_out, session_date, location_id, notes, session_hours)
+				 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NULL, $9, $10)
 				 RETURNING
 					session_id AS "sessionId",
 					user_id AS "userId",
@@ -275,8 +279,9 @@ function createSessionProvider(dbPool) {
 					buy_in AS "buyIn",
 					buy_out AS "cashOut",
 					session_date AS "sessionDate",
+					session_hours AS "hours",
 					notes`,
-				[userId, smallBlind, bigBlind, rebuyNum, rebuyAmt, buyIn, cashOut, date, notes]
+				[userId, smallBlind, bigBlind, rebuyNum, rebuyAmt, buyIn, cashOut, date, notes, hours]
 			);
 
 			return mapDbRowToSession(inserted.rows[0], hours);
