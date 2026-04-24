@@ -35,6 +35,11 @@ Chip-Ledger is a secure web application for tracking chip/gaming activity. Users
 - Hasan Kobeissy
 - Trace Rindal
 
+## Deployment
+
+The server and database is hosted on render. Access render using the following link:
+https://chip-companion.onrender.com/
+
 ## Prerequisites
 
 Before running this project locally, ensure you have installed:
